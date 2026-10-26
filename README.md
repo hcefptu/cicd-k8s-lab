@@ -1,5 +1,15 @@
 # Automated CI/CD & GitOps Pipeline for Node.js Application
 
+<!-- Tech Stack Badges -->
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
+![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Tekton](https://img.shields.io/badge/Tekton-FD495C?style=for-the-badge&logo=tekton&logoColor=white)
+![Argo CD](https://img.shields.io/badge/Argo_CD-EF7B4D?style=for-the-badge&logo=argo&logoColor=white)
+![Gitea](https://img.shields.io/badge/Gitea-609926?style=for-the-badge&logo=gitea&logoColor=white)
+![Prometheus](https://img.shields.io/badge/Prometheus-E6522C?style=for-the-badge&logo=prometheus&logoColor=white)
+![Grafana](https://img.shields.io/badge/Grafana-F46800?style=for-the-badge&logo=grafana&logoColor=white)
+
 This repository demonstrates a complete modern DevOps workflow, simulating the process from a Developer pushing code to the automatic deployment and monitoring of the application on a Kubernetes cluster.
 
 ## 🏗️ Architecture Overview
@@ -41,3 +51,7 @@ The pipeline is built with the following stack:
 - `02-gitops-config/`: Kustomize configs (base/overlays) and Helm chart for Monitoring.
 - `03-tekton-pipelines/`: Tekton Tasks, Pipelines, and Triggers.
 - `04-argocd-config/`: Argo CD Application/ApplicationSet manifests.
+
+---
+### 🏷️ Tags
+`#Kubernetes` `#K3s` `#DevOps` `#GitOps` `#CI-CD` `#Tekton` `#ArgoCD` `#Kustomize` `#Helm` `#Prometheus` `#Grafana` `#NodeJS` `#Docker` `#Gitea`
