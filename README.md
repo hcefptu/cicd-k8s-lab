@@ -1,4 +1,4 @@
-# Automated CI/CD & GitOps Pipeline for Node.js Application
+# Cloud-Native CI/CD & GitOps Pipeline for Node.js Application
 
 <!-- Tech Stack Badges -->
 ![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
