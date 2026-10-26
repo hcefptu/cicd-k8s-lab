@@ -1,2 +1,8 @@
+# Ignore secrets
 config.json
 docker-config-secret.yml
+03-tekton-pipelines/config.json
+03-tekton-pipelines/docker-config-secret.yml
+
+# Ignore node_modules
+node_modules/
