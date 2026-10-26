@@ -1,0 +1,104 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: update-gitops-manifest
+spec:
+  params:
+    - name: gitops-repo-url
+      type: string
+    - name: image-reference
+      type: string
+    - name: file-path
+      type: string
+      default: "base/deploy.yml" 
+  workspaces:
+    - name: source
+  steps:
+    - name: clone-gitops
+      image: alpine/git:v2.40.1
+      workingDir: $(workspaces.source.path)
+      env:
+        - name: GIT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: gitea-gitops-secret
+              key: username
+        - name: GIT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: gitea-gitops-secret
+              key: password
+      script: |
+        #!/bin/sh
+        set -e
+        echo "Cloning GitOps repo..."
+        DOMAIN=$(echo "$(params.gitops-repo-url)" | sed 's|http://||' | cut -d'/' -f1)
+        git config --global credential.helper store
+        echo "http://${GIT_USERNAME}:${GIT_PASSWORD}@${DOMAIN}" > ~/.git-credentials
+        
+        git clone $(params.gitops-repo-url) gitops-repo
+        cd gitops-repo
+        git config --global --add safe.directory "$(workspaces.source.path)/gitops-repo"
+        git config user.email "tekton-bot@example.com"
+        git config user.name "Tekton Bot"
+
+    - name: update-yaml
+      image: mikefarah/yq:4.35.2
+      workingDir: $(workspaces.source.path)/gitops-repo
+      securityContext:
+        runAsUser: 0
+      script: |
+        #!/bin/sh
+        set -e
+        
+        FILE_PATH="$(params.file-path)"
+        IMAGE_REF="$(params.image-reference)"
+        
+        echo "Updating image in $FILE_PATH to $IMAGE_REF..."
+        
+        if [ ! -f "$FILE_PATH" ]; then
+          echo "ERROR: can't find $FILE_PATH"
+          echo "file list in gitops repo:"
+          ls -R
+          exit 1
+        fi
+        
+        yq eval ".spec.template.spec.containers[0].image = \"$IMAGE_REF\"" "$FILE_PATH" > /tmp/deploy.yaml
+        cat /tmp/deploy.yaml > "$FILE_PATH"
+        
+        echo "Update done."
+        cat "$FILE_PATH"
+
+    - name: commit-and-push
+      image: alpine/git:v2.40.1
+      workingDir: $(workspaces.source.path)/gitops-repo
+      securityContext:
+        runAsUser: 0
+      env:
+        - name: GIT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: gitea-gitops-secret
+              key: username
+        - name: GIT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: gitea-gitops-secret
+              key: password
+      script: |
+        #!/bin/sh
+        set -e
+        echo "Commiting changes"
+        git config --global --add safe.directory "$(workspaces.source.path)/gitops-repo"
+        
+        git add $(params.file-path)
+        
+        if ! git diff --cached --exit-code; then
+          git commit -m "Update image to $(params.image-reference) [skip ci]"
+          echo "Pushing on remote..."
+          
+          CLEAN_URL=$(echo "$(params.gitops-repo-url)" | sed 's|http://||')
+          git push http://${GIT_USERNAME}:${GIT_PASSWORD}@${CLEAN_URL} HEAD:main
+        else
+          echo "No changes"
+        fi

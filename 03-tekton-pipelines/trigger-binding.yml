@@ -1,0 +1,10 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerBinding
+metadata:
+  name: gitea-push-binding
+spec:
+  params:
+    - name: git-repo-url
+      value: "http://gitea-http.gitea.svc.cluster.local:3000/gitea_admin/my-app-source.git"
+    - name: image-reference
+      value: akarata283/my-app:$(body.after)

@@ -1,0 +1,54 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: build-and-push-pipeline
+spec:
+  workspaces:
+    - name: shared-workspace
+    - name: dockerconfig
+  params:
+    - name: repo-url
+      type: string
+    - name: image-reference
+      type: string
+  tasks:
+    - name: fetch-source
+      taskRef:
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: shared-workspace
+      params:
+        - name: url
+          value: $(params.repo-url)
+    - name: build-app
+      runAfter: ["fetch-source"]
+      taskRef:
+        name: build-app
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+    - name: build-push-image
+      runAfter: ["build-app"]
+      taskRef:
+        name: kaniko
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+        - name: dockerconfig
+          workspace: dockerconfig
+      params:
+        - name: IMAGE
+          value: $(params.image-reference)
+    - name: update-gitops
+      runAfter: ["build-push-image"]
+      taskRef:
+        name: update-gitops-manifest
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+      params:
+        - name: gitops-repo-url
+          value: "http://gitea-http.gitea.svc.cluster.local:3000/gitea_admin/my-app-gitops.git"
+        - name: image-reference
+          value: "$(params.image-reference)"

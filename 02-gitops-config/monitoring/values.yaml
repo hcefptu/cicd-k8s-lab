@@ -1,0 +1,43 @@
+kube-prometheus-stack:
+  # 1. Tắt Alertmanager
+  alertmanager:
+    enabled: false 
+
+  # 2. Tắt các thằng ngốn RAM vô ích trong bài Lab
+  nodeExporter:
+    enabled: false
+  kubeStateMetrics:
+    enabled: false
+  
+  # 3. Giới hạn RAM của Operator
+  prometheusOperator:
+    resources:
+      requests:
+        memory: 100Mi
+      limits:
+        memory: 200Mi
+
+  # 4. Prometheus chỉ được dùng tối đa 512MB
+  prometheus:
+    prometheusSpec:
+      retention: 1d  
+      resources:
+        requests:
+          memory: 200Mi
+          cpu: 100m
+        limits:
+          memory: 512Mi
+
+  # 5. Grafana siêu nhẹ
+  grafana:
+    adminPassword: "admin" 
+    resources:
+      requests:
+        memory: 100Mi
+      limits:              # <--- SỬA Ở ĐÂY: limits phải ngang hàng với requests
+        memory: 256Mi
+    ingress:
+      enabled: true
+      ingressClassName: nginx
+      hosts:
+        - grafana.local

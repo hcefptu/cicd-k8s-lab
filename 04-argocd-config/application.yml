@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: my-app-set
+  namespace: argocd
+spec:
+  generators:
+    - git:
+        repoURL: http://gitea-http.gitea.svc.cluster.local:3000/gitea_admin/my-app-gitops.git
+        revision: main
+        directories:
+          - path: overlays/*
+  template:
+    metadata:
+      name: 'my-app-{{path.basename}}'
+    spec:
+      project: default
+      source:
+        repoURL: http://gitea-http.gitea.svc.cluster.local:3000/gitea_admin/my-app-gitops.git
+        targetRevision: main
+        path: '{{path}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{path.basename}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

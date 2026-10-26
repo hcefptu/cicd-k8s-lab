@@ -1,0 +1,12 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: EventListener
+metadata:
+  name: gitea-listener
+spec:
+  serviceAccountName: tekton-build-sa
+  triggers:
+    - name: gitea-push-trigger
+      bindings:
+        - ref: gitea-push-binding
+      template:
+        ref: build-pipeline-template

@@ -1,0 +1,37 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  name: build-pipeline-template
+spec:
+  params:
+    - name: git-repo-url
+    - name: image-reference
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+        generateName: build-pipeline-run-
+      spec:
+        serviceAccountName: tekton-build-sa
+        pipelineRef:
+          name: build-and-push-pipeline
+        workspaces:
+          - name: shared-workspace
+            volumeClaimTemplate:
+              spec:
+                accessModes:
+                  - ReadWriteOnce
+                resources:
+                  requests:
+                    storage: 1Gi
+          - name: dockerconfig
+            secret:
+              secretName: docker-config-secret
+              items:
+                - key: config.json
+                  path: config.json
+        params:
+          - name: repo-url
+            value: $(tt.params.git-repo-url)
+          - name: image-reference
+            value: $(tt.params.image-reference)

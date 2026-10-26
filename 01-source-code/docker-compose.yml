@@ -1,0 +1,44 @@
+services:
+  oracle-db:
+    image: gvenzl/oracle-free:slim
+    container_name: hex-tone-oracle
+    restart: always
+    environment:
+      - ORACLE_PASSWORD=HexTonePass123!
+      - APP_USER=hextone_user
+      - APP_USER_PASSWORD=HexTonePass123!
+    ports:
+      - "1521:1521"
+    volumes:
+      - oracle_data:/opt/oracle/oradata
+    networks:
+      - app-network
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hex-tone-web
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=development
+      - DB_USER=hextone_user
+      - DB_PASSWORD=HexTonePass123!
+      - DB_CONNECT_STRING=oracle-db:1521/FREEPDB1
+    depends_on:
+      - oracle-db
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    networks:
+      - app-network
+
+volumes:
+  oracle_data:
+
+networks:
+  app-network:
+    driver: bridge
